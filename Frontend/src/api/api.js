@@ -1,31 +1,31 @@
 // frontend/src/api/api.js
 import axios from "axios";
 
-// Gunakan environment variable agar fleksibel antara development & production
+// Base API URL (ambil dari Vercel env)
+const API_BASE = import.meta.env.VITE_API_BASE || "https://backend-repo-kxhr.onrender.com";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: API_BASE, // Tidak perlu /api kalau backend kamu bukan prefiks /api
   headers: {
     "Content-Type": "application/json",
   },
-  // Kalau backend pakai cookie session, aktifkan ini:
+  // Jika memakai cookie session:
   // withCredentials: true,
 });
 
-// ✅ Interceptor Request → Tambahkan token JWT ke setiap request
+// ✅ Interceptor Request → Tambahkan JWT jika ada
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      // kalau backend kamu pakai nama header lain, contoh:
-      // config.headers["x-access-token"] = token;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ✅ Interceptor Response → Tangani error token kadaluarsa / invalid
+// ✅ Interceptor Response → Tangani token kadaluarsa
 api.interceptors.response.use(
   (response) => response,
   (error) => {
